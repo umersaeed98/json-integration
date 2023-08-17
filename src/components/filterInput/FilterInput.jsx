@@ -1,30 +1,36 @@
+import React, { useState } from 'react';
+import { Container } from 'react-bootstrap';
 
-
-import React from 'react'
-import { Container } from 'react-bootstrap'
-
-const FilterInput = ({value,onEnterPress}) => {
+const FilterInput = ({ onEnterPress, onClear }) => {
+  const [filterValue, setFilterValue] = useState('');
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
-      onEnterPress(event.target.value);
+      onEnterPress(event);
     }
   };
+
+  const handleInputChange = (event) => {
+    const value = event.target.value;
+    setFilterValue(value);
+    if (value === '') {
+      onEnterPress(event);
+      onClear(); // Call the onClear function to reset comments
+    }
+  };
+
   return (
     <Container className='d-flex flex-column align-items-center my-5 justify-content-center'>
-         <label htmlFor="filterId"></label>
-      <input 
-      style={{width:'350px',padding:'10px'}}
-      placeholder='Filter by ID:'
+      <input
+        style={{ width: '350px', padding: '10px' }}
+        placeholder='Filter by ID:'
         type="number"
-        id="filterId"
-        value={value}
-        onKeyPress={handleKeyDown}
+        value={filterValue}
+        onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
       />
     </Container>
-      
-    
-  )
-}
+  );
+};
 
-export default FilterInput
+export default FilterInput;
