@@ -1,10 +1,10 @@
 
 
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
 import ReactPaginate from 'react-paginate';
-import './commentsTable.css'
+import './commentsTable.css';
 import { Container, Table } from 'react-bootstrap';
 import FilterInput from '../filterInput/FilterInput';
 
@@ -14,40 +14,49 @@ function CommentsTable() {
   const itemsPerPage = 10;
   const [expandedComments, setExpandedComments] = useState([]);
   const [filterId, setFilterId] = useState('');
+  const [filteredComments, setFilteredComments] = useState([]);
+  const [originalComments, setOriginalComments] = useState([]); // Add this state
 
-
-
-
-  //  const handleFilterChange = (event) => {
-  //    setFilterId(event.target.value);
-  //  };
-
-  const handlePressChange = (value) => {
-
-    setFilterId(value);
-
-
+  const handlePressChange = (e) => {
+    setFilterId(e.target.value);
   };
 
   useEffect(() => {
     fetchComments();
   }, []);
 
+  useEffect(() => {
+    filterComments();
+  }, [filterId, comments]);
+
   const fetchComments = async () => {
     try {
       const response = await axios.get('https://jsonplaceholder.typicode.com/comments');
-      setComments(response.data);
+      const data = response.data;
+      setComments(data);
+      setOriginalComments(data); // Save original comments data
+      filterComments();
     } catch (error) {
       console.error('Error fetching comments:', error);
     }
   };
 
-  const filteredComments = comments.filter(
-    (comment) =>
-      filterId === '' || comment.id.toString() === filterId
-  );
+  const filterComments = () => {
+    const filtered = comments.filter(
+      (comment) =>
+        filterId === '' || comment.id.toString() === filterId
+    );
+    setFilteredComments(filtered);
+    setCurrentPage(0);
+  };
 
-  const totalPages = (filteredComments.length / itemsPerPage);
+  const resetComments = () => {
+    setFilterId('');
+    setFilteredComments(originalComments); // Reset to original comments
+    setCurrentPage(0);
+  };
+
+  const totalPages = Math.ceil(filteredComments.length / itemsPerPage);
 
   const handlePageClick = (data) => {
     const selectedPage = data.selected;
@@ -68,7 +77,7 @@ function CommentsTable() {
 
   return (
     <>
-      <FilterInput value={filterId} onEnterPress={handlePressChange} />
+      <FilterInput onEnterPress={handlePressChange} onClear={resetComments} />
       <Container className='d-flex flex-column align-items-center my-2 justify-content-center'>
         <h2 className='fw-bold display-4'>Check out Our Best Comments </h2>
         <Table striped bordered hover className='mt-3'>
@@ -88,7 +97,7 @@ function CommentsTable() {
                 <td>{comment.email}</td>
                 <td>
                   {expandedComments.includes(comment.id) ||
-                    comment.body.length <= 20 ? (
+                  comment.body.length <= 20 ? (
                     comment.body
                   ) : (
                     <>
@@ -122,9 +131,6 @@ function CommentsTable() {
         />
       </Container>
     </>
-
-
-
   );
 }
 
